@@ -11,13 +11,30 @@ class RegistrationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'description' => 'required|string',
+            'description' => 'required|string|max:255',
             'image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'image_paths' => 'nullable|array',
             'image_paths.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'file_path' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ], [
+            // Custom validation messages
+            'description.required' => 'Deskripsi wajib diisi.',
+            'description.string' => 'Deskripsi harus berupa teks.',
+            'description.max' => 'Deskripsi tidak boleh lebih dari 255 karakter.',
+            'image_path.required' => 'Gambar wajib diunggah.',
+            'image_path.image' => 'File yang diunggah harus berupa gambar.',
+            'image_path.mimes' => 'Gambar harus memiliki format jpeg, png, jpg, atau gif.',
+            'image_path.max' => 'Ukuran gambar tidak boleh lebih dari 2MB.',
+            'image_paths.array' => 'Gambar (array) harus berupa array.',
+            'image_paths.*.image' => 'Setiap file dalam array gambar harus berupa gambar.',
+            'image_paths.*.mimes' => 'Setiap gambar dalam array harus memiliki format jpeg, png, jpg, atau gif.',
+            'image_paths.*.max' => 'Setiap gambar dalam array tidak boleh lebih dari 2MB.',
+            'file_path.required' => 'File wajib diunggah.',
+            'file_path.file' => 'File yang diunggah harus berupa file.',
+            'file_path.mimes' => 'File harus memiliki format pdf, doc, atau docx.',
+            'file_path.max' => 'Ukuran file tidak boleh lebih dari 2MB.',
         ]);
-
+    
         // Handle file uploads
         $validated['image_path'] = $request->file('image_path')->store('images');
         if ($request->has('image_paths')) {
@@ -26,10 +43,10 @@ class RegistrationController extends Controller
             }, $request->file('image_paths')));
         }
         $validated['file_path'] = $request->file('file_path')->store('files');
-
+    
         Registration::create($validated);
-
-        return response()->json(['message' => 'Registration created successfully.']);
+    
+        return redirect()->route('registrations.create')->with('success', 'Registration created successfully.');
     }
 
     // Tampilkan (index)
